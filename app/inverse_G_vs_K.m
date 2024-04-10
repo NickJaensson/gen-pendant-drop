@@ -64,7 +64,7 @@ for iii = 1:length(K_all)
     
     for jjj = 1:length(G_all)
 
-        Nrand = 10; % nunber of random samples
+        Nrand = 100; % nunber of random samples
 
         params_phys.Kmod = K_all(iii);
         params_phys.Gmod = G_all(jjj);
@@ -110,24 +110,24 @@ for iii = 1:length(K_all)
     
                     % fit the noisy shape with Cheby polynomials
                     
-                    [vars_sol_ref_fit,vars_num_ref_fit] = ...
+                    [vars_sol_ref_fit{iii,jjj}{kk},vars_num_ref_fit] = ...
                         fit_shape_with_chebfun(rr_noise_ref,zz_noise_ref,params_num);
-                    vars_sol_ref_fit.p0 = vars_sol_ref.p0;
+                    vars_sol_ref_fit{iii,jjj}{kk}.p0 = vars_sol_ref.p0;
                     
-                    [vars_sol_fit,vars_num_fit] = ...
+                    [vars_sol_fit{iii,jjj}{kk},vars_num_fit] = ...
                         fit_shape_with_chebfun(rr_noise,zz_noise,params_num);
-                    vars_sol_fit.p0 = vars_sol.p0;
+                    vars_sol_fit{iii,jjj}{kk}.p0 = vars_sol.p0;
                     
                     % perform CMD to find the surface stresses
                     % NOTE: by replacing vars_sol_fit -> vars_sol and vars_num_fit -> vars_num
                     % the the numerical results are used instead of the Cheby fit (giving a 
                     % best-case scenario)
                     
-                    [vars_sol_ref_fit.sigmas, vars_sol_ref_fit.sigmap] = ...
-                        makeCMD(params_phys, vars_sol_ref_fit, vars_num_ref_fit);
+                    [vars_sol_ref_fit{iii,jjj}{kk}.sigmas, vars_sol_ref_fit{iii,jjj}{kk}.sigmap] = ...
+                        makeCMD(params_phys, vars_sol_ref_fit{iii,jjj}{kk}, vars_num_ref_fit);
                     
-                    [vars_sol_fit.sigmas, vars_sol_fit.sigmap] = ...
-                        makeCMD(params_phys, vars_sol_fit, vars_num_fit);
+                    [vars_sol_fit{iii,jjj}{kk}.sigmas, vars_sol_fit{iii,jjj}{kk}.sigmap] = ...
+                        makeCMD(params_phys, vars_sol_fit{iii,jjj}{kk}, vars_num_fit);
     
                     % perform SFE to find the moduli and strains
                     % NOTE: by replacing vars_sol_fit -> vars_sol and vars_num_fit -> vars_num
@@ -135,7 +135,7 @@ for iii = 1:length(K_all)
                     % best-case scenario)
                     
                     [moduliS, lambda_s, lambda_r]  = makeSFE(params_phys.strainmeasure,...
-                        vars_sol_ref_fit, vars_num_ref_fit, vars_sol_fit, vars_num_fit, ...
+                        vars_sol_ref_fit{iii,jjj}{kk}, vars_num_ref_fit, vars_sol_fit{iii,jjj}{kk}, vars_num_fit, ...
                         params_num, false);
                     
                     % post processing and plotting
@@ -143,6 +143,10 @@ for iii = 1:length(K_all)
                     G{iii,jjj}(kk) = moduliS(1);
                     K{iii,jjj}(kk) = moduliS(2);
                     kk = kk + 1;
+
+                    if kk == 11
+                        break
+                    end
     
                 catch
     
